@@ -1,4 +1,6 @@
 import Tutorial from '../abis/Tutorial.json';
+import ERC721Capped from '../abis/ERC721Capped.json';
+
 
 var Web3 = require('web3');
 
@@ -31,3 +33,13 @@ export const loadTutorial = async (web3, networkId) => {
       return null
     }
 }
+
+export const loadCapped = async (web3, networkId) => {
+  try {
+    return new web3.eth.Contract(ERC721Capped.abi, ERC721Capped.networks[networkId].address)
+  } catch (error) {
+    console.log('Contract not deployed to the current network. Please select another network with Metamask.')
+    return null
+  }
+}
+
