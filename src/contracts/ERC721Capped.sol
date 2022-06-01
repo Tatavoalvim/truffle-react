@@ -26,13 +26,17 @@ contract ERC721Capped is ERC721, Ownable {
     }
 
     function _createNFT() internal {
-        require(_totalMinted <=  _cap);
+        require(_totalMinted <=  _cap, "Exceeeded cap.");
         _totalMinted++;
         _mint(msg.sender, _totalMinted);
     }
 
     function ownerMint() public onlyOwner {
         _createNFT();
+    }
+
+    function getMintPrice() public view returns (uint256) {
+        return _mintPrice;
     }
 
     function publicMint() public payable {

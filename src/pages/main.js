@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Head from './Header';
 import './main.css';
+import Web3 from 'web3';
 
 import {
     loadWeb3,
@@ -8,6 +9,7 @@ import {
     loadTutorial,
     loadCapped
 } from "../helpers/web3Functions";
+
 
 const LandingPage = () => {
     const [account, setAccount] = useState("");
@@ -17,9 +19,9 @@ const LandingPage = () => {
 
     // hooks do ERC721Capped
     const [capped, setCapped] = useState(""); // objeto do contrato
-    const [supply, setSupply] = useState(""); // armazena total supply
-    const [balance, setBalance] = useState(""); // armazena balanço
-    const [price, setPrice] = useState(""); // armazena mint price
+    const [supply, setSupply] = useState(""); // armazena current supply
+    const [price, setPrice] = useState(""); // armazena admin mint price
+
 
     const callGetFrase = async () => {
       const f = await tutorial.methods.get().call();
@@ -34,10 +36,6 @@ const LandingPage = () => {
     const callGetTotalSupply = async () => {
       const f = await capped.methods.getTotalSupply().call();
       setSupply(f);
-    }
-    const callGetBalance = async () => {
-      const f = await capped.methods.getBalance().call();
-      setBalance(f);
     }
     const callOwnerMint = async () => {
       await capped.methods.ownerMint().send({from: account});
@@ -55,9 +53,9 @@ const LandingPage = () => {
       await capped.methods.withdraw().send({from: account});
     }
     const callPublicMint = async () => {
-      const f = await capped.methods.publicMint().send({from: account, value: 10});
+      const f = await capped.methods.getMintPrice().call()
+      await capped.methods.publicMint().send({from: account, value: f});
     }
-    
 
 
 
@@ -79,8 +77,10 @@ const LandingPage = () => {
         setCapped(contractERC)
       }
     useEffect(() => {
-      loadBlockchainData();
+      loadBlockchainData(); 
     },[])
+
+    
 
     return (
       <div>
@@ -103,20 +103,22 @@ const LandingPage = () => {
                 <div className="row">
                   <div>
                     <p className='title'>Owner Mint (bypasses checks):</p> 
+     
+
                   </div>
                   <button className='btn' type='button' onClick={callOwnerMint} >Mint</button>
                 </div>
                 <div className="row">
                   <div>
                     <p className='title'>Open sales:</p>
-                    <input placeholder="Mint price" className='inp' onChange={(e) => setPrice(e.target.value)}/>
+                    <input placeholder="Mint price" className='inp' onChange={(e) => setPrice(Web3.utils.toWei(e.target.value, "ether"))}/>
                   </div>
                   <button className='btn' type='button' onClick={() => callOpenSales(price)} >Open</button>
                 </div>
                 <div className="row">
                   <div>
                     <p className='title'>Alter mint price:</p> 
-                    <input placeholder="Mint price" className='inp' onChange={(e) => setPrice(e.target.value)}/>
+                    <input placeholder="Mint price" className='inp' onChange={(e) => setPrice(Web3.utils.toWei(e.target.value, "ether"))}/>
                   </div>
                   <button className='btn' type='button' onClick={() => callSetMintPrice(price)} >Submit</button>
                 </div>
@@ -151,41 +153,18 @@ const LandingPage = () => {
               </div>
                 <div className="row">
                   <div>
-                    <p className='title'>View Balance (bypasses checks):</p> 
-                    <div>
-                      {balance}
-                    </div>
-                  </div>
-                  <button className='btn' type='button' onClick={callGetBalance} >Submit</button>
-                </div>
-                <div className="row">
-                  <div>
                     <p className='title'>View total supply:</p>
                     <div>
                       {supply}
                     </div>
                   </div>
-                  <button className='btn' type='button' onClick={callGetTotalSupply} >Open</button>
+                  <button className='btnGet' type='button' onClick={callGetTotalSupply} >Submit</button>
                 </div>
                 <div className="row">
                   <div>
-                    <p className='title'>Alter mint price:</p> 
-                    <input placeholder="Mint price" className='inp' onChange={(e) => setPrice(e.target.value)}/>
+                    <p className='title'>Public Mint:</p> 
                   </div>
-                  <button className='btn' type='button' onClick={() => callSetMintPrice(price)} >Submit</button>
-                </div>
-                <div className="row">
-                  <div>
-                    <p className='title'>Close sales:</p> 
-                  </div>
-                  <button className='btn' type='button' onClick={callCloseSales} >Close</button>
-
-                </div>
-                <div className="row">
-                  <div>
-                    <p className='title'>Withdraw ETH from contract:</p> 
-                  </div>
-                  <button className='btn' type='button' onClick={callWithdraw} >W/D</button>
+                  <button className='btn' type='button' onClick={callPublicMint} >Mint</button>
                 </div>
             </div>
           </div>
